@@ -14,7 +14,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	private Socket socket;		//socket connecting to server
 	private DataOutputStream dos;
 	private DataInputStream dis;
-	private int port = 49051;	//mapserver-port
+	private int port = 49061;	//mapserver-port
 	private Timer tim = new Timer(10,this);
 	boolean[] arrowDown = new boolean[4];
 	

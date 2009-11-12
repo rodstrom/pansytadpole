@@ -24,7 +24,7 @@ public class MapSrv {
 	
 	// Usage: java Server <port>
 	static public void main( String args[] ){
-		new MapSrv( 49051 );	//create server
+		new MapSrv( 49061 );	//create server
 	}
 	
 	private void listen( int port ) throws IOException {
