@@ -20,7 +20,7 @@ public class Player {
 	
 	public Player( int x, int y, int s, int t, double i ){
 		try {
-			url = new URL( "http://zincgull.rodstrom.se/zincgull.png" );
+			url = new URL( "http://pansytadpole.rodstrom.se/tadpole.png" );
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		}

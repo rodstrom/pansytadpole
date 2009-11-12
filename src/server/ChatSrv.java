@@ -24,7 +24,7 @@ public class ChatSrv {
 	
 	// Usage: java Server <port>
 	static public void main( String args[] ){
-		new ChatSrv( 49050 );	//create server
+		new ChatSrv( 49060 );	//create server
 	}
 	
 	private void listen( int port ) throws IOException {

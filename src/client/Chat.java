@@ -14,7 +14,7 @@ public class Chat extends JPanel implements Runnable {
 	private Socket socket;		//socket connecting to server
 	private DataOutputStream dos;
 	private DataInputStream dis;
-	private int port = 49050;	//chatserver-port
+	private int port = 49060;	//chatserver-port
 	
 	public Chat() {		
 		chatOutput.setEditable(false);
