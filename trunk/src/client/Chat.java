@@ -16,6 +16,14 @@ public class Chat extends JPanel implements Runnable {
 	private DataInputStream dis;
 	private int port = 49060;	//chatserver-port
 	
+	private ActionListener al = new ActionListener() {
+		public void actionPerformed( ActionEvent e ) {
+			if( !e.getActionCommand().isEmpty() ){	//make sure it's not null
+				processMessage( e.getActionCommand() );
+			}
+		}
+	};
+	
 	public Chat() {		
 		chatOutput.setEditable(false);
 		chatOutput.setBackground(Color.BLACK);
@@ -27,19 +35,6 @@ public class Chat extends JPanel implements Runnable {
 		this.setLayout( new BorderLayout() );
 		this.add( "North", chatInput );
 		this.add( "Center", chatOutput );
-		
-		// We want to receive messages when someone types a line
-		// and hits return, using an anonymous class as
-		// a callback
-		chatInput.addActionListener( 
-			new ActionListener() {
-				public void actionPerformed( ActionEvent e ) {
-					if( !e.getActionCommand().isEmpty() ){	//make sure it's not null
-						processMessage( e.getActionCommand() );
-					}
-				}
-			} 
-		);
 		this.setVisible(true);
 		//_ISSUE: client wont start until server is started...
 		connectServer(true);	//try to connect, "true" because its the first time
@@ -63,7 +58,7 @@ public class Chat extends JPanel implements Runnable {
 			chatInput.setText( "" );		//clear inputfield
 		} catch( IOException ie ) { 
 			System.out.println( ie ); 
-			chatOutput.append( PansyTadpole.getTime()+": Can't send message\n" );
+			chatOutput.append( PansyTadpole.getTime()+": Error while sending message.\n" );
 		}
 	}
 	
@@ -79,12 +74,10 @@ public class Chat extends JPanel implements Runnable {
 				// Start a background thread for receiving messages
 				new Thread( this ).start();		//starts run()-method
 				reconnect = false;
-				if(!first) chatOutput.append(PansyTadpole.getTime()+": CHAT: Connected to server\n");
-			} catch( IOException e ) { 
-				if(first){
-					chatOutput.append(PansyTadpole.getTime()+": CHAT: Can't connect to server, trying again\n");
-					first = false;
-				}
+				chatInput.addActionListener( al );
+				if(!first) chatOutput.append(PansyTadpole.getTime()+": Reconnected to the chat-server.\n");
+			} catch( IOException e ) {
+				
 			}
 		}
 	}
@@ -100,7 +93,9 @@ public class Chat extends JPanel implements Runnable {
 			}
 		} catch( IOException ie ) { 
 			//System.out.println( ie );	//debug, not necessary with below line
-			chatOutput.append(PansyTadpole.getTime()+": CHAT: Connection reset, reconnecting\n");
+			chatOutput.append(PansyTadpole.getTime()+": Lost connection to the chat-server.\n");
+			PansyTadpole.connected(false);	//lost connection
+			chatInput.removeActionListener( al );
 			connectServer(false);
 		}
 	}
@@ -114,6 +109,10 @@ public class Chat extends JPanel implements Runnable {
 				}else if( msg.substring(0, 6).equals("/nick ") ){	//expecting a hello-message at first connection
 					PansyTadpole.nick = msg.substring(6);
 					Sidebar.lblNick.setText(PansyTadpole.nick);
+					return true;
+				}else if( msg.substring(0, 6).equals("/HELLO") ){	//expecting a hello-message at first connection
+					//chatOutput.append( PansyTadpole.getTime()+": "+msg.substring(7)+"\n" );
+					PansyTadpole.connected(true);
 					return true;
 				}
 			}

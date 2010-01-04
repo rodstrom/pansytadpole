@@ -26,8 +26,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
       	this.setBackground(Color.WHITE);
       	this.setDoubleBuffered(true);
       	tim.addActionListener(this);
-		tim.start();
-		
+		//tim.start();		
 
 		Random rnd = new Random();			//random position, minimum 100px from border
 		int rx = rnd.nextInt(1030)+100;
@@ -70,12 +69,13 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			}
 		} catch( IOException ie ) {
 			Player p = player.get(getId(PansyTadpole.random));
-			Chat.chatOutput.append(PansyTadpole.getTime()+": MAP: Connection reset, reconnecting\n");
+			Chat.chatOutput.append(PansyTadpole.getTime()+": Lost connection to the maps-server.\n");
+			PansyTadpole.connected(false);	//lost connection
+			tim.stop();
 			int x = p.xpos;
 			int y = p.ypos;
 			int t = p.turned;
 			int s = p.speed;
-			PansyTadpole.connected = false;
 			player.clear();
 			repaint();
 			connect(false, x+":"+y+":"+t+":"+s);
@@ -88,7 +88,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		try {
 			dos.writeUTF( p.xpos +":"+ p.ypos +":"+ p.turned +":"+ p.speed +":"+ PansyTadpole.random);
 		} catch( IOException ie ) { 
-			//Chat.chatOutput.append( Zincgull.getTime()+": MAP: Can't send coordinates\n" );
+			Chat.chatOutput.append( PansyTadpole.getTime()+": Error while sending coordinates.\n" );
 		}
 	}
 	
@@ -102,14 +102,14 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 				dos.writeUTF("/HELLO "+position+":"+PansyTadpole.random);
 				// Start a background thread for receiving coordinates
 				new Thread( this ).start();		//starts run()-method
-				if(!first) Chat.chatOutput.append(PansyTadpole.getTime()+": MAP: Connected to mapserver\n");
+				if(!first) Chat.chatOutput.append(PansyTadpole.getTime()+": Reconnected to the maps-server.\n");
 				return;
 			} catch( IOException e ) { 
 				//System.out.println(e);
-				if(first){
-					Chat.chatOutput.append(PansyTadpole.getTime()+": MAP: Can't connect to server, trying again\n");
+				/*if(first){
+					Chat.chatOutput.append(PansyTadpole.getTime()+": MAPS: Can't connect to server, trying again\n");
 					first = false;
-				}
+				}*/
 			}
 		}
 	}
@@ -137,16 +137,14 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	public void keyTyped(KeyEvent e) {}
 
 	public void actionPerformed(ActionEvent e) {
-		if ( PansyTadpole.connected ) {
-			if (PansyTadpole.isMouseActive()&&(arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
-				if( calculateMove() ){
-					sendData();
-					repaint();
-				}
-			}else{
-				for (int i = 0; i < arrowDown.length; i++) {
-					arrowDown[i] = false;
-				}
+		if (PansyTadpole.isMouseActive()&&(arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
+			if( calculateMove() ){
+				sendData();
+				repaint();
+			}
+		}else{
+			for (int i = 0; i < arrowDown.length; i++) {
+				arrowDown[i] = false;
 			}
 		}
 	}
@@ -186,7 +184,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			int t = Integer.parseInt(temp[3]);
 			double i = Double.parseDouble(temp[4]);		
 			player.add(new Player(x,y,t,s,i));
-			PansyTadpole.connected = true;
+			//PansyTadpole.connected = true;
 			repaint();
 			return true;
 		}else if( msg.substring(0, 4).equals("/SUB") ){
@@ -195,7 +193,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			repaint();
 			return true;
 		}else if( msg.substring(0, 6).equals("/HELLO") ){
-			Chat.chatOutput.append(PansyTadpole.getTime()+": "+msg.substring(7)+"\n");
+			//Chat.chatOutput.append(PansyTadpole.getTime()+": "+msg.substring(7)+"\n");
+			PansyTadpole.connected(true);
+			tim.start();
 			return true;
 		}
 		return false;
