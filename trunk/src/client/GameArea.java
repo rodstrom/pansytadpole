@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.net.*;
 import java.util.LinkedList;
+import java.util.Random;
 
 import javax.swing.*;
 
@@ -26,7 +27,12 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
       	this.setDoubleBuffered(true);
       	tim.addActionListener(this);
 		tim.start();
-		connect(true, "80:50:1:1");	//try to connect, "true" because its the first time
+		
+
+		Random rnd = new Random();			//random position, minimum 100px from border
+		int rx = rnd.nextInt(1030)+100;
+		int ry = rnd.nextInt(400)+100;
+		connect(true, rx+":"+ry+":1:1");	//try to connect, "true" because its the first time
 	}
 
 	public void paintComponent(Graphics g) {
@@ -34,7 +40,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		for (int i = 0; i < player.size(); i++) {
 			if(player.get(i).id != 0.0){
 				Player p = player.get(i);
-				g.drawImage(p.sprite.getImage(), p.xpos-p.turned*(100/2), p.ypos, p.turned*100, 50, null);
+				int w = 100;	//sprite-width
+				int h = 50;		//sprite-height
+				g.drawImage(p.sprite.getImage(), p.xpos-p.turned*(w/2), p.ypos-(h/2), p.turned*w, h, null);
 			}
 		}
 		if(PansyTadpole.isMouseActive()){
@@ -146,20 +154,20 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	private boolean calculateMove() {
 		boolean change = false;
 		Player p = player.get(getId(PansyTadpole.random));
-		if(arrowDown[0] && (p.ypos+p.speed)<=700){
+		if(arrowDown[0] && (p.ypos+p.speed)<=700){		//height(800) - chat(200) + hide-area(100)
 			p.ypos=p.ypos+p.speed;	//move down
 			change = true;
 		}
-		if(arrowDown[1] && (p.xpos+p.speed)<=1330){
+		if(arrowDown[1] && (p.xpos+p.speed)<=1330){		//width(1280) - sidebar(50) + hide-area(100)
 			p.xpos=p.xpos+p.speed;	//move right
 			p.turned = 1;
 			change = true;
 		}
-		if(arrowDown[2] && (p.ypos-p.speed)>=-100){
+		if(arrowDown[2] && (p.ypos-p.speed)>=-100){		//0 - hide-area(100)
 			p.ypos=p.ypos-p.speed;	//move up
 			change = true;
 		}
-		if(arrowDown[3] && (p.xpos-p.speed)>=-100){
+		if(arrowDown[3] && (p.xpos-p.speed)>=-100){		//0 - hide-area(100)
 			p.xpos=p.xpos-p.speed;	//move left
 			p.turned = -1;
 			change = true;
