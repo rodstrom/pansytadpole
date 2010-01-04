@@ -131,9 +131,10 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	public void actionPerformed(ActionEvent e) {
 		if ( PansyTadpole.connected ) {
 			if (PansyTadpole.isMouseActive()&&(arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
-				calculateMove();
-				sendData();
-				repaint();	
+				if( calculateMove() ){
+					sendData();
+					repaint();
+				}
 			}else{
 				for (int i = 0; i < arrowDown.length; i++) {
 					arrowDown[i] = false;
@@ -142,22 +143,28 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 
-	private void calculateMove() {
+	private boolean calculateMove() {
+		boolean change = false;
 		Player p = player.get(getId(PansyTadpole.random));
-		if(arrowDown[0]){
-			p.ypos=p.ypos+p.speed;
+		if(arrowDown[0] && (p.ypos+p.speed)<=700){
+			p.ypos=p.ypos+p.speed;	//move down
+			change = true;
 		}
-		if(arrowDown[1]){
-			p.xpos=p.xpos+p.speed;
+		if(arrowDown[1] && (p.xpos+p.speed)<=1330){
+			p.xpos=p.xpos+p.speed;	//move right
 			p.turned = 1;
+			change = true;
 		}
-		if(arrowDown[2]){
-			p.ypos=p.ypos-p.speed;
+		if(arrowDown[2] && (p.ypos-p.speed)>=-100){
+			p.ypos=p.ypos-p.speed;	//move up
+			change = true;
 		}
-		if(arrowDown[3]){
-			p.xpos=p.xpos-p.speed;
+		if(arrowDown[3] && (p.xpos-p.speed)>=-100){
+			p.xpos=p.xpos-p.speed;	//move left
 			p.turned = -1;
+			change = true;
 		}
+		return change;
 	}
 	
 	//possible commands the server can send

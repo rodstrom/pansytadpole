@@ -20,7 +20,10 @@ public class Chat extends JPanel implements Runnable {
 		chatOutput.setEditable(false);
 		chatOutput.setBackground(Color.BLACK);
 		chatOutput.setForeground(Color.GREEN);
+		chatOutput.setPreferredSize(new Dimension(1280, 180));
 		
+		chatInput.setPreferredSize(new Dimension(1280, 20));
+
 		this.setLayout( new BorderLayout() );
 		this.add( "North", chatInput );
 		this.add( "Center", chatOutput );

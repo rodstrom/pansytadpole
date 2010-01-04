@@ -15,6 +15,6 @@ public class Sidebar extends JPanel {
 		this.add(lblNick);
 		this.add(lblHost);
 		this.add(lblRand);
-		this.setPreferredSize(new Dimension(140, 60));
+		this.setPreferredSize(new Dimension(140, 50));
 	}
 }
