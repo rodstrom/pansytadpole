@@ -49,7 +49,7 @@ public class MapSrvThread extends Thread {
 			String[] temp;
 			temp = msg.split(":");
 			user = Double.parseDouble(temp[4]);
-			sendTo("/HELLO Welcome to the Zincgull mapserver!");		//welcome-message
+			sendTo("/HELLO MAPS: Welcome to the Pansy Tadpole mapserver!");		//welcome-message
 			
 			for (int i = 0; i < MapSrv.positions.size(); i++) {
 				sendTo("/ADD "+MapSrv.positions.get(i));

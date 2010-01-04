@@ -114,7 +114,7 @@ public class ChatSrvThread extends Thread {
 						String[] temp;
 						msg = msg.substring(7);
 						temp = msg.split(":");
-						sendTo("Welcome to the Zincgull chatserver!");		//welcome-message
+						sendTo("/HELLO CHAT: Welcome to the Pansy Tadpole chatserver!");		//welcome-message
 						random = Double.parseDouble( temp[1] );
 						setUsername(temp[0], true);	//true because its the first time
 						return true;
