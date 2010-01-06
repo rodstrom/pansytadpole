@@ -12,13 +12,15 @@ public class Player {
 	int ypos = 50;
 	int speed = 1;
 	int turned = 1;
+	int points = 0;
+	String nick = "";
 	double id;
 	
 	public Player( double i ){
 		this.id = i;
 	}
 	
-	public Player( int x, int y, int s, int t, double i ){
+	public Player( int x, int y, int s, int t, int p, String n, double i ){
 		try {
 			url = new URL( "http://pansytadpole.rodstrom.se/tadpole.png" );
 		} catch (MalformedURLException e) {
@@ -29,6 +31,8 @@ public class Player {
 		this.ypos = y;
 		this.speed = s;
 		this.turned = t;
+		this.points = p;
+		this.nick = n;
 		this.id = i;
 	}
 }
