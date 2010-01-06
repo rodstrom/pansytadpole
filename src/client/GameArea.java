@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.*;
 import java.util.LinkedList;
 import java.util.Random;
-
 import javax.swing.*;
 
 public class GameArea extends JPanel implements ActionListener, KeyListener, Runnable{
@@ -18,6 +17,13 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	private int port = 49061;	//mapserver-port
 	private Timer tim = new Timer(10,this);
 	boolean[] arrowDown = new boolean[4];
+	
+	int w_sprite = 100;	//sprite-width
+	int h_sprite = 50;		//sprite-height
+	int w_side = 140;
+	int h_chat = 200;
+	int max_x = 1280 - w_side; 
+	int max_y = 800 - h_chat;
 	
 	protected static LinkedList<Player> player = new LinkedList<Player>();
 	
@@ -32,21 +38,75 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		int rx = rnd.nextInt(1030)+100;
 		int ry = rnd.nextInt(400)+100;
 		connect(true, rx+":"+ry+":1:1");	//try to connect, "true" because its the first time
+		//connect(true, 1100+":"+100+":1:1");	//try to connect, "true" because its the first time
 	}
 
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		if( hidden() >= 2 ){		//create a crosshair to make it easier to move the player
+			g.drawLine(p().xpos, p().ypos-150, p().xpos, p().ypos+150);		//y-line
+			g.drawLine(p().xpos-150, p().ypos, p().xpos+150, p().ypos);		//x-line
+		}else if( hidden() == 1 ){	//create a diagonal crosshair
+			g.drawLine(p().xpos-150, p().ypos-150, p().xpos+150, p().ypos+150);
+			g.drawLine(p().xpos+150, p().ypos-150, p().xpos-150, p().ypos+150);
+		}
 		for (int i = 0; i < player.size(); i++) {
 			if(player.get(i).id != 0.0){
-				Player p = player.get(i);
-				int w = 100;	//sprite-width
-				int h = 50;		//sprite-height
-				g.drawImage(p.sprite.getImage(), p.xpos-p.turned*(w/2), p.ypos-(h/2), p.turned*w, h, null);
+				Player p_i = player.get(i);
+				g.drawImage(p_i.sprite.getImage(), p_i.xpos-p_i.turned*(w_sprite/2), p_i.ypos-(h_sprite/2), p_i.turned*w_sprite, h_sprite, null);
 			}
 		}
 		if(PansyTadpole.isMouseActive()){
 			this.requestFocus();
 		}
+	}
+	
+	/**
+	 * Checks if the character is hiding, and how much.<br>
+	 * Sets up a grid to make it possible for the player to locate his/her character.<br>
+	 * Makes sure the player doesn't earns any points when hiding.<br>
+	 * Also makes sure that the server knows when player hides.
+	 * 
+	 * @return	<b>0</b>	Player isn't hiding<br>
+	 * <b>1</b>	Player is completely hidden in a corner, needs diagonal crosshair<br>
+	 * <b>2</b>	Player needs a crosshair for locating<br>
+	 * <b>3</b>	Player is completely hidden, but not in a corner
+	 */
+	private int hidden() {
+		int north_sprite = 13;
+		int south_sprite = 13;
+		int west_sprite = 43;
+		int east_sprite = 26;
+		boolean hiding = false;
+		//first check if partly hidden
+		if( ( 0 >= p().xpos ) || ( p().xpos >= max_x ) || ( 0 >= p().ypos ) || ( p().ypos >= max_y ) ){
+			//START of checking complete hiding
+			if( 		//if hidden in X
+				(((p().turned==-1) && 
+					((-west_sprite >= p().xpos) || 			//left, <-				//___________________PROBLEM_______________________!!!
+					(max_x + east_sprite <= p().xpos)))) ||	//right, <-
+				(-east_sprite >= p().xpos) ||					//left, ->
+				(max_x + west_sprite <= p().xpos)				//right, ->
+			){
+				Chat.chatOutput.append(PansyTadpole.getTime()+": completely hidden in x\n");
+				//stoppa poängräknare för spelare
+				//meddela att man gömt sig
+				hiding = true;			//it was hiding
+			}
+			if( 	//if hidden in Y
+					(-south_sprite >= p().ypos) ||				//up
+					(max_y + north_sprite <= p().ypos)			//down
+			){
+				Chat.chatOutput.append(PansyTadpole.getTime()+": completely hidden in y\n");
+				if(hiding) return 1;	//if it was hiding in X, and got here, it's hiding in a corner
+				hiding = true;			//it was hiding
+			}
+			//END of checkick complete hiding
+			return 2;											//2 partly hidden, regular crosshair
+		}
+		//ge poäng till spelare som vågar vistas ute på planen
+		if(hiding) return 3;	//it was hiding in x or y, or both... 3 completely hidden, regular crosshair
+		return 0;												//0 not hidden, no crosshair
 	}
 
 	//keep receiving messages from the server
@@ -57,25 +117,24 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
-					Player ps = player.get(getId(Double.valueOf(temp[4])));
+					Player p_s = player.get(getId(Double.valueOf(temp[4])));
 					if( !temp[4].equals( Double.toString(PansyTadpole.random) ) ){		//only paint new coordinates if they didnt come from this client
-						ps.xpos = Integer.parseInt(temp[0]);
-						ps.ypos = Integer.parseInt(temp[1]);
-						ps.turned = Integer.parseInt(temp[2]);
-						ps.speed = Integer.parseInt(temp[3]);
+						p_s.xpos = Integer.parseInt(temp[0]);
+						p_s.ypos = Integer.parseInt(temp[1]);
+						p_s.turned = Integer.parseInt(temp[2]);
+						p_s.speed = Integer.parseInt(temp[3]);
 						repaint();
 					}
 				}
 			}
 		} catch( IOException ie ) {
-			Player p = player.get(getId(PansyTadpole.random));
 			Chat.chatOutput.append(PansyTadpole.getTime()+": Lost connection to the maps-server.\n");
 			PansyTadpole.connected(false);	//lost connection
 			tim.stop();
-			int x = p.xpos;
-			int y = p.ypos;
-			int t = p.turned;
-			int s = p.speed;
+			int x = p().xpos;
+			int y = p().ypos;
+			int t = p().turned;
+			int s = p().speed;
 			player.clear();
 			repaint();
 			connect(false, x+":"+y+":"+t+":"+s);
@@ -84,9 +143,8 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	}
 
 	private void sendData() {
-		Player p = player.get(getId(PansyTadpole.random));
 		try {
-			dos.writeUTF( p.xpos +":"+ p.ypos +":"+ p.turned +":"+ p.speed +":"+ PansyTadpole.random);
+			dos.writeUTF( p().xpos +":"+ p().ypos +":"+ p().turned +":"+ p().speed +":"+ PansyTadpole.random);
 		} catch( IOException ie ) { 
 			Chat.chatOutput.append( PansyTadpole.getTime()+": Error while sending coordinates.\n" );
 		}
@@ -148,26 +206,25 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			}
 		}
 	}
-
+	
 	private boolean calculateMove() {
 		boolean change = false;
-		Player p = player.get(getId(PansyTadpole.random));
-		if(arrowDown[0] && (p.ypos+p.speed)<=700){		//height(800) - chat(200) + hide-area(100)
-			p.ypos=p.ypos+p.speed;	//move down
+		if(arrowDown[0] && !arrowDown[2] && (p().ypos+p().speed) <= max_y + 100){		//height(800) - chat(200) + hide-area(100)
+			p().ypos += p().speed;	//move down
 			change = true;
 		}
-		if(arrowDown[1] && (p.xpos+p.speed)<=1330){		//width(1280) - sidebar(50) + hide-area(100)
-			p.xpos=p.xpos+p.speed;	//move right
-			p.turned = 1;
+		if(arrowDown[1] && !arrowDown[3] && (p().xpos+p().speed) <= max_x + 100){		//width(1280) - sidebar(140) + hide-area(100)
+			p().xpos += p().speed;	//move right
+			p().turned = 1;
 			change = true;
 		}
-		if(arrowDown[2] && (p.ypos-p.speed)>=-100){		//0 - hide-area(100)
-			p.ypos=p.ypos-p.speed;	//move up
+		if(arrowDown[2] && !arrowDown[0] && (p().ypos-p().speed) >= -100){		//0 - hide-area(100)
+			p().ypos -= p().speed;	//move up
 			change = true;
 		}
-		if(arrowDown[3] && (p.xpos-p.speed)>=-100){		//0 - hide-area(100)
-			p.xpos=p.xpos-p.speed;	//move left
-			p.turned = -1;
+		if(arrowDown[3] && !arrowDown[1] && (p().xpos-p().speed) >= -100){		//0 - hide-area(100)
+			p().xpos -= p().speed;	//move left
+			p().turned = -1;
 			change = true;
 		}
 		return change;
@@ -199,5 +256,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			return true;
 		}
 		return false;
+	}
+	
+	public Player p(){
+    	return player.get(getId(PansyTadpole.random));
 	}
 }
