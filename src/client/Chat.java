@@ -108,7 +108,7 @@ public class Chat extends JPanel implements Runnable {
 					return false;
 				}else if( msg.substring(0, 6).equals("/nick ") ){	//expecting a hello-message at first connection
 					PansyTadpole.nick = msg.substring(6);
-					Sidebar.lblNick.setText(PansyTadpole.nick);
+					GameArea.updateNick();
 					return true;
 				}else if( msg.substring(0, 6).equals("/HELLO") ){	//expecting a hello-message at first connection
 					//chatOutput.append( PansyTadpole.getTime()+": "+msg.substring(7)+"\n" );
@@ -118,6 +118,5 @@ public class Chat extends JPanel implements Runnable {
 			}
 		}
 		return false;
-	}
-	
+	}	
 }

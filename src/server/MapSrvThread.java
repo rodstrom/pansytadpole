@@ -21,7 +21,7 @@ public class MapSrvThread extends Thread {
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
-					user = Double.parseDouble(temp[4]);
+					user = Double.parseDouble(temp[6]);
 					MapSrv.positions.set(MapSrv.getId(user), coords);
 					server.sendToAll( coords );
 					System.out.println( "MAP "+MapSrv.getTime()+": COORDS: "+coords );
@@ -44,8 +44,14 @@ public class MapSrvThread extends Thread {
 	}
 	
 	public boolean specialCommand( String msg ){
-		if( msg.substring(0, 6).equals("/HELLO") ){
+		if( msg.substring(0, 6).equals("/NICK ") ){	//expecting a hello-message at first connection
+			for (int i = 0; i < MapSrv.positions.size(); i++) {
+				sendTo(msg);
+			}
+			return true;
+		}else if( msg.substring(0, 6).equals("/HELLO") ){
 			msg = msg.substring(7);
+			System.out.println( "USR "+MapSrv.getTime()+": "+ msg );
 			String[] temp;
 			temp = msg.split(":");
 			user = Double.parseDouble(temp[4]);
@@ -58,7 +64,7 @@ public class MapSrvThread extends Thread {
 			MapSrv.positions.add(msg);
 			server.sendToAll("/ADD "+msg);
 			return true;
-		}
+		} 
 		return false;
 	}
 }
