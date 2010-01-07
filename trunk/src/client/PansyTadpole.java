@@ -21,14 +21,15 @@ public class PansyTadpole extends JApplet implements MouseListener{
 	static String host, nick;
 	static int connections = 0;
 	private static boolean first = true;
+	static GameArea ga = new GameArea();
 	
-	//start with parameters "host" and "nick"
+	//start with parameter "host" defining the servers adress
 	public void init() {	
 		host = getParameter("host");
-		nick = getParameter("nick");
+		nick = ""+(int)(random*1000000);
 		this.add(new Sidebar(), BorderLayout.EAST);
 		this.add(new Chat(), BorderLayout.SOUTH);
-		this.add(new GameArea(), BorderLayout.CENTER);
+		this.add(ga, BorderLayout.CENTER);
 		this.addMouseListener(this);
 	}
 	
@@ -46,7 +47,7 @@ public class PansyTadpole extends JApplet implements MouseListener{
 		if(b){
 			connections++;
 			if ( connections == 2 && first ) {		//if 2 then both map and chatserver are connected
-				Chat.chatOutput.append(getTime()+": Welcome to Pansy Tadpole!\n\t  Choose a nickname by typing \"/nick \" followed by your name.\n");
+				Chat.chatOutput.append(getTime()+": Welcome to Pansy Tadpole!\n\t  To look at the list of possible commands type \"/help\".\n\t  Change your nickname by typing \"/nick \" followed by the desired nickname.\n");
 				first = false;
 			} else if ( connections == 2 ) {
 				Chat.chatOutput.append(getTime()+": Completely reconnected to Pansy Tadpole!\n");

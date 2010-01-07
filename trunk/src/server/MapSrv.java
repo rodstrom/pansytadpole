@@ -16,7 +16,7 @@ public class MapSrv {
 		try {
 			listen( port );
 		} catch (IOException e) {
-			System.out.println( "ERR "+getTime()+": Something failed");
+			System.out.println( "ERR "+getTime()+": Another instance of the server is already running on this port.");
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -77,7 +77,7 @@ public class MapSrv {
 		String[] tmp;
 		for (int i = 0; i < positions.size(); i++) {
 			tmp = positions.get(i).split(":");
-			if( tmp[4].equals( Double.toString(d) ) ){	//needs to be unique
+			if( tmp[7].equals( Double.toString(d) ) ){	//needs to be unique
 				return i;
 			}
 		}

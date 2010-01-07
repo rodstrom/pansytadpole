@@ -13,7 +13,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	private static final long serialVersionUID = -5572295459928673608L;
 	
 	private Socket socket;		//socket connecting to server
-	private static DataOutputStream dos;
+	private DataOutputStream dos;
 	private DataInputStream dis;
 	private int port = 49061;	//mapserver-port
 	private Timer tim = new Timer(10,this);
@@ -38,7 +38,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		Random rnd = new Random();			//random position, minimum 100px from border
 		int rx = rnd.nextInt(1030)+100;
 		int ry = rnd.nextInt(400)+100;
-		connect(true, rx+":"+ry+":1:1:0:"+PansyTadpole.nick);	//try to connect, "true" because its the first time
+		connect(true, rx+":"+ry+":1:1:0:0:");	//try to connect, "true" because its the first time
 		//connect(true, 1100+":"+100+":1:1");	//try to connect, "true" because its the first time
 	}
 
@@ -98,19 +98,18 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 						(-south_sprite >= p().ypos) ||			//up
 						(max_y + north_sprite <= p().ypos)		//down
 				){
-					if(hiding) Chat.chatOutput.append(PansyTadpole.getTime()+": 1\n");
 					if(hiding) return 1;	//if it was hiding in X, and got here, it's hiding in a corner
 					hiding = true;			//it was hiding
 				}
 				//END of checking complete hiding
-				if(hiding) Chat.chatOutput.append(PansyTadpole.getTime()+": 3\n");
+				if(hiding && p().status != 2) p().status = 1;
 				if(hiding) return 3;	//it was hiding in x or y, or both... 3 completely hidden, regular crosshair
-				Chat.chatOutput.append(PansyTadpole.getTime()+": 2\n");
+				if(p().status != 2) p().status = 0;
 				return 2;											//2 partly hidden, regular crosshair
 			}
 		}
 		//ge poäng till spelare som vågar vistas ute på planen
-		Chat.chatOutput.append(PansyTadpole.getTime()+": 0\n");
+		if(p().status != 2) p().status = 0;
 		return 0;												//0 not hidden, no crosshair
 	}
 
@@ -122,12 +121,15 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
-					Player p_s = player.get(getId(Double.valueOf(temp[6])));
-					if( !temp[4].equals( Double.toString(PansyTadpole.random) ) ){		//only paint new coordinates if they didnt come from this client
+					Player p_s = player.get(getId(Double.valueOf(temp[7])));
+					if( !temp[7].equals( Double.toString(PansyTadpole.random) ) ){		//only paint new coordinates if they didnt come from this client
 						p_s.xpos = Integer.parseInt(temp[0]);
 						p_s.ypos = Integer.parseInt(temp[1]);
 						p_s.turned = Integer.parseInt(temp[2]);
 						p_s.speed = Integer.parseInt(temp[3]);
+						p_s.points = Integer.parseInt(temp[4]);
+						p_s.status = Integer.parseInt(temp[5]);
+						p_s.nick = temp[6];
 						repaint();
 					}
 				}
@@ -141,33 +143,34 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			int t = p().turned;
 			int s = p().speed;
 			int p = p().points;
-			String n = p().nick;
+			int h = p().status;
 			player.clear();
 			repaint();
-			connect(false, x+":"+y+":"+t+":"+s+":"+p+":"+n);
+			connect(false, x+":"+y+":"+t+":"+s+":"+p+":"+h+":");
 			return;
 		}
 	}
 
 	private void sendData() {
 		try {
-			dos.writeUTF( p().xpos +":"+ p().ypos +":"+ p().turned +":"+ p().speed +":"+ p().points +":"+ p().nick +":"+ PansyTadpole.random);
+			dos.writeUTF( p().xpos +":"+ p().ypos +":"+ p().turned +":"+ p().speed +":"+ p().points +":"+ p().status +":"+ PansyTadpole.nick +":"+ PansyTadpole.random);
 		} catch( IOException ie ) { 
 			Chat.chatOutput.append( PansyTadpole.getTime()+": Error while sending coordinates.\n" );
 		}
 	}
 	
 	public void connect(boolean first, String player_data){
-		while (true) {
+		while ( true ) {
 			try {
 				socket = new Socket(PansyTadpole.host, port);
 				//create streams for communication
 				dis = new DataInputStream( socket.getInputStream() );
 				dos = new DataOutputStream( socket.getOutputStream() );
-				dos.writeUTF("/HELLO "+player_data+":"+PansyTadpole.random);
+				dos.writeUTF("/HELLO "+player_data+PansyTadpole.nick+":"+PansyTadpole.random);
 				// Start a background thread for receiving coordinates
 				new Thread( this ).start();		//starts run()-method
 				if(!first) Chat.chatOutput.append(PansyTadpole.getTime()+": Reconnected to the maps-server.\n");
+				Sidebar.scoreboardUpdate();
 				return;
 			} catch( IOException e ) { 
 				//System.out.println(e);
@@ -203,7 +206,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 
 	public void actionPerformed(ActionEvent e) {	//happens every 5ms
 		increase_points();
-		if (PansyTadpole.isMouseActive()&&(arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
+		if (PansyTadpole.isMouseActive() && (arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
 			if( calculateMove() ){
 				sendData();
 				repaint();
@@ -248,15 +251,16 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			int s = Integer.parseInt(temp[2]);
 			int t = Integer.parseInt(temp[3]);
 			int p = Integer.parseInt(temp[4]);
-			String n = temp[5];
-			double i = Double.parseDouble(temp[6]);		
-			player.add(new Player(x,y,t,s,p,n,i));
-			//PansyTadpole.connected = true;
+			int h = Integer.parseInt(temp[5]);
+			String n = temp[6];
+			double i = Double.parseDouble(temp[7]);		
+			player.add(new Player(x,y,t,s,p,h,n,i));
+			sendData();
 			repaint();
 			return true;
 		}else if( msg.substring(0, 4).equals("/SUB") ){
 			//player.remove(getId( Double.parseDouble(temp[4]) ));
-			player.set(getId(Double.parseDouble(msg.substring(5))), new Player(0,0,0,0,0,null,0.0));
+			player.set(getId(Double.parseDouble(msg.substring(5))), new Player(0,0,0,0,0,0,null,0.0));
 			repaint();
 			return true;
 		}else if( msg.substring(0, 6).equals("/NICK ") ){
@@ -287,10 +291,13 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		return null;
 	}
 
-	public static void updateNick() {
-		player.get(getId(PansyTadpole.random)).nick = PansyTadpole.nick;
-		try {
-			dos.writeUTF("/NICK "+PansyTadpole.nick+":"+PansyTadpole.random);
-		} catch (IOException e) { e.printStackTrace(); }
+	public void updateNick() {
+		if( player.size() > 0 ){
+			player.get(getId(PansyTadpole.random)).nick = PansyTadpole.nick;
+			try {
+				dos.writeUTF("/NICK "+PansyTadpole.nick+":"+PansyTadpole.random);
+			} catch (IOException e) { e.printStackTrace(); }
+			sendData();
+		}
 	}
 }

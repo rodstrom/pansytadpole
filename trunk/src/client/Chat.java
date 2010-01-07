@@ -45,7 +45,6 @@ public class Chat extends JPanel implements Runnable {
 		try {
 			if ( message.substring(0, 1).equals("/") ) {	//only special commands start with a /
 				if( message.length() == 5 && message.equals("/info") ){
-					chatOutput.append(PansyTadpole.getTime()+": Client-information:\n");
 					chatOutput.append("\t  Server is "+PansyTadpole.host+"\n");
 					chatOutput.append("\t  Nickname is "+PansyTadpole.nick+"\n");
 					chatOutput.append("\t  Unique ID is "+PansyTadpole.random+"\n");
@@ -63,8 +62,7 @@ public class Chat extends JPanel implements Runnable {
 	}
 	
 	public void connectServer(boolean first){
-		boolean reconnect = true;
-		while (reconnect) {
+		while (true) {
 			try {
 				socket = new Socket(PansyTadpole.host, port);
 				//create streams for communication
@@ -73,9 +71,9 @@ public class Chat extends JPanel implements Runnable {
 				dos.writeUTF( "/HELLO "+PansyTadpole.nick +":"+ PansyTadpole.random );	//say hello to server, nickname and unique random
 				// Start a background thread for receiving messages
 				new Thread( this ).start();		//starts run()-method
-				reconnect = false;
 				chatInput.addActionListener( al );
 				if(!first) chatOutput.append(PansyTadpole.getTime()+": Reconnected to the chat-server.\n");
+				return;
 			} catch( IOException e ) {
 				
 			}
@@ -108,7 +106,7 @@ public class Chat extends JPanel implements Runnable {
 					return false;
 				}else if( msg.substring(0, 6).equals("/nick ") ){	//expecting a hello-message at first connection
 					PansyTadpole.nick = msg.substring(6);
-					GameArea.updateNick();
+					PansyTadpole.ga.updateNick();
 					return true;
 				}else if( msg.substring(0, 6).equals("/HELLO") ){	//expecting a hello-message at first connection
 					//chatOutput.append( PansyTadpole.getTime()+": "+msg.substring(7)+"\n" );
