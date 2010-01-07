@@ -23,11 +23,32 @@ public class Sidebar extends JPanel {
 	
 	public static void scoreboardUpdate(){
 		lblScoreboard.setText("");
+		String status = "_";
 		for (int i = 0; i < GameArea.player.size(); i++) {
-			lblScoreboard.append(
-				GameArea.player.get(i).nick +" "+ 
-				GameArea.player.get(i).points +"\n" 
-			);
+			if ( GameArea.player.get(i).id != 0.0 ){
+				if( GameArea.player.get(i).status == 1 ){
+					status = "H";
+				}else if( GameArea.player.get(i).status == 2 ){
+					status = "C";
+				}else{
+					status = "_";
+				}
+				String scores;
+				
+				if( GameArea.player.get(i).id == PansyTadpole.random ){
+					scores = 
+
+						status + ">" + 
+						PansyTadpole.nick +" | "+ 
+						GameArea.player.get(i).points +"\n";
+				}else{
+					scores = 
+						status + " " + 
+						GameArea.player.get(i).nick +" | "+ 
+						GameArea.player.get(i).points +"\n";
+				}
+				lblScoreboard.append( scores );
+			}
 		}
 	}
 }

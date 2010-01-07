@@ -13,6 +13,7 @@ public class Player {
 	int speed = 1;
 	int turned = 1;
 	int points = 0;
+	int status = 0;	//0 chased, 1 chased hidden, 2 chaser
 	String nick = "";
 	double id;
 	
@@ -20,7 +21,7 @@ public class Player {
 		this.id = i;
 	}
 	
-	public Player( int x, int y, int s, int t, int p, String n, double i ){
+	public Player( int x, int y, int s, int t, int p, int h, String n, double i ){
 		try {
 			url = new URL( "http://pansytadpole.rodstrom.se/tadpole.png" );
 		} catch (MalformedURLException e) {
@@ -32,6 +33,7 @@ public class Player {
 		this.speed = s;
 		this.turned = t;
 		this.points = p;
+		this.status = h;
 		this.nick = n;
 		this.id = i;
 	}

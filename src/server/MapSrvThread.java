@@ -21,7 +21,7 @@ public class MapSrvThread extends Thread {
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
-					user = Double.parseDouble(temp[6]);
+					user = Double.parseDouble(temp[7]);
 					MapSrv.positions.set(MapSrv.getId(user), coords);
 					server.sendToAll( coords );
 					System.out.println( "MAP "+MapSrv.getTime()+": COORDS: "+coords );
@@ -52,15 +52,23 @@ public class MapSrvThread extends Thread {
 		}else if( msg.substring(0, 6).equals("/HELLO") ){
 			msg = msg.substring(7);
 			System.out.println( "USR "+MapSrv.getTime()+": "+ msg );
-			String[] temp;
-			temp = msg.split(":");
-			user = Double.parseDouble(temp[4]);
+			String[] t;
+			t = msg.split(":");
+			user = Double.parseDouble(t[7]);
 			sendTo("/HELLO MAPS: Welcome to the Pansy Tadpole mapserver!");		//welcome-message
 			
+			int online = 0;
 			for (int i = 0; i < MapSrv.positions.size(); i++) {
-				sendTo("/ADD "+MapSrv.positions.get(i));
+				String[] tmp_id = MapSrv.positions.get(i).split(":");
+				if ( tmp_id[7] != "0.0" ){
+					sendTo("/ADD "+MapSrv.positions.get(i));
+					online ++;
+				}
 			}
-
+			if(online == 0){
+				t[5] = "2";
+				msg = t[0]+":"+t[1]+":"+t[2]+":"+t[3]+":"+t[4]+":"+t[5]+":"+t[6]+":"+t[7];
+			}
 			MapSrv.positions.add(msg);
 			server.sendToAll("/ADD "+msg);
 			return true;

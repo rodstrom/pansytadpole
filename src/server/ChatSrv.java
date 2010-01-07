@@ -16,7 +16,7 @@ public class ChatSrv {
 		try {
 			listen( port );
 		} catch (IOException e) {
-			System.out.println( "ERR "+getTime()+": Something failed");
+			System.out.println( "ERR "+getTime()+": Another instance of the server is already running on this port.");
 			e.printStackTrace();
 			System.exit(1);
 		}
