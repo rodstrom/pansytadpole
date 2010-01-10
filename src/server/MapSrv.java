@@ -5,7 +5,7 @@ import java.net.*;
 import java.text.DateFormat;
 import java.util.*;
 
-public class MapSrv {
+public class MapSrv {	
 	private ServerSocket ss;
 	//this is used to don't have to create a DOS every time you are writing to a stream
 	private Hashtable<Socket, DataOutputStream> outputStreams = new Hashtable<Socket, DataOutputStream>();
@@ -58,6 +58,8 @@ public class MapSrv {
 	}
 	
 	void removeConnection( Socket s, double d ) {		//run when connection is discovered dead
+		String[] t;
+		t = positions.get(getId(d)).split(":");
 		synchronized( getOutputStreams() ) {		//dont mess up sendToAll
 			positions.remove(getId(d));
 			System.out.println( "USR "+getTime()+": Lost connection from "+s );
@@ -71,6 +73,15 @@ public class MapSrv {
 				ie.printStackTrace();
 			}
 		}
+		//begin checking if the chaser left, and if thats the case, select a new chaser.
+		if( t[5].equals("2") && positions.size() > 0 ){
+			t = positions.getLast().split(":");
+			t[5] = "2";
+			String coords = t[0]+":"+t[1]+":"+t[2]+":"+t[3]+":"+t[4]+":"+t[5]+":"+t[6]+":"+t[7];
+			positions.set(getId(Double.valueOf(t[7])), coords);
+			sendToAll("/SUB "+t[7]);
+			sendToAll("/ADD "+coords);
+		}	//end checking if chaser
 	}
 	
 	public static int getId(Double d){
