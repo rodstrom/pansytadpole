@@ -107,9 +107,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 				if(p().status != 2) p().status = 0;
 				return 2;											//2 partly hidden, regular crosshair
 			}
+			//ge poäng till spelare som vågar vistas ute på planen
+			if(p().status != 2) p().status = 0;
 		}
-		//ge poäng till spelare som vågar vistas ute på planen
-		if(p().status != 2) p().status = 0;
 		return 0;												//0 not hidden, no crosshair
 	}
 
@@ -118,6 +118,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		try {
 			while (true) {
 				String coords = dis.readUTF();
+				System.out.println(coords);
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
@@ -260,7 +261,8 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			return true;
 		}else if( msg.substring(0, 4).equals("/SUB") ){
 			//player.remove(getId( Double.parseDouble(temp[4]) ));
-			player.set(getId(Double.parseDouble(msg.substring(5))), new Player(0,0,0,0,0,0,null,0.0));
+			player.remove( getId(Double.parseDouble( msg.substring(5) )) );
+			//player.set(getId(Double.parseDouble(msg.substring(5))), new Player(0,0,0,0,0,0,null,0.0));
 			repaint();
 			return true;
 		}else if( msg.substring(0, 6).equals("/NICK ") ){

@@ -46,7 +46,10 @@ public class MapSrvThread extends Thread {
 	public boolean specialCommand( String msg ){
 		if( msg.substring(0, 6).equals("/NICK ") ){	//expecting a hello-message at first connection
 			for (int i = 0; i < MapSrv.positions.size(); i++) {
-				sendTo(msg);
+				String[] tmp_id = MapSrv.positions.get(i).split(":");
+				if ( tmp_id[7] != "0.0" ){
+					sendTo(msg);
+				}
 			}
 			return true;
 		}else if( msg.substring(0, 6).equals("/HELLO") ){
