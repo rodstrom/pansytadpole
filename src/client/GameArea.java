@@ -26,6 +26,12 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	int max_x = 1280 - w_side; 
 	int max_y = 800 - h_chat;
 	
+	//pixels from center of sprite to edges of picture
+	int north_sprite = 13;
+	int south_sprite = 13;
+	int west_sprite = 43;
+	int east_sprite = 26;
+	
 	protected static LinkedList<Player> player = new LinkedList<Player>();
 	
 	public GameArea() {		
@@ -74,10 +80,6 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	 * <b>3</b>	Player is completely hidden, but not in a corner
 	 */
 	private int hidden() {
-		int north_sprite = 13;
-		int south_sprite = 13;
-		int west_sprite = 43;
-		int east_sprite = 26;
 		boolean hiding = false;
 		//first check if partly hidden
 		if( player.size() > 0 ){
@@ -209,6 +211,7 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		increase_points();
 		if (PansyTadpole.isMouseActive() && (arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
 			if( calculateMove() ){
+				collisionCheck();
 				sendData();
 				repaint();
 			}
@@ -219,6 +222,33 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 	
+	private void collisionCheck() {
+		if( p().status != 2 ) return;	//only do this if the client is tha chaser
+		int xdiff, ydiff;
+		for (int i = 0; i < player.size(); i++) {
+			if( player.get(i).id != 0.0 && player.get(i).status == 0 ){		//a connected player which isnt hidden or chasing
+				xdiff = p().xpos - player.get(i).xpos;
+				ydiff = p().ypos - player.get(i).ypos;
+				if( (ydiff <= 26) && (ydiff >= -26) ){
+					if( ( (p().turned == 1) && (player.get(i).turned == -1) ) || ( (p().turned == -1) && (player.get(i).turned == 1) ) ){
+						if( (xdiff <= 26) && (xdiff >= -26) ){
+							
+						}
+					}else if( ( (p().turned == -1) && (player.get(i).turned == -1) ) || ( (p().turned == 1) && (player.get(i).turned == 1) ) ){
+						if( (xdiff <= 69) && (xdiff >= -69) ){
+							try {
+								dos.writeUTF("/GOT "+player.get(i).id+":"+p().id);
+								Chat.chatOutput.append( PansyTadpole.getTime()+": Caught "+player.get(i).nick+".\n" );
+							} catch (IOException e) {
+								Chat.chatOutput.append( PansyTadpole.getTime()+": Error while sending collision-info.\n" );
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+//43 26
 	private boolean calculateMove() {
 		boolean change = false;
 		if(arrowDown[0] && !arrowDown[2] && (p().ypos+p().speed) <= max_y + 100){	//height(800) - chat(200) + hide-area(100)
