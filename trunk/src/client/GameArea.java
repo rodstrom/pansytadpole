@@ -9,6 +9,10 @@ import java.util.Random;
 
 import javax.swing.*;
 
+/**
+ * @author rodstrom
+ * Handles the area with the players and where things happen in the game.
+ */
 public class GameArea extends JPanel implements ActionListener, KeyListener, Runnable{
 	private static final long serialVersionUID = -5572295459928673608L;
 	
@@ -34,6 +38,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 	
 	protected static LinkedList<Player> player = new LinkedList<Player>();
 	
+	/**
+	 * Starts the GameArea, giving the player a random position and starts a connection to the server.
+	 */
 	public GameArea() {		
       	this.addKeyListener(this);
       	this.setBackground(Color.WHITE);
@@ -48,6 +55,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		//connect(true, 1100+":"+100+":1:1");	//try to connect, "true" because its the first time
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 */
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		if( hidden() >= 2 ){		//create a crosshair to make it easier to move the player
@@ -115,7 +125,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		return 0;												//0 not hidden, no crosshair
 	}
 
-	//keep receiving messages from the server
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 		try {
 			while (true) {
@@ -124,9 +136,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 				if (!specialCommand(coords)) {
 					String[] temp;
 					temp = coords.split(":");
-					Player p_s = player.get(getId(Double.valueOf(temp[7])));
+					Player p_s = player.get(getId(Double.valueOf(temp[7])));	//this is the current player
 					if( !temp[7].equals( Double.toString(PansyTadpole.random) ) ){		//only paint new coordinates if they didnt come from this client
-						p_s.xpos = Integer.parseInt(temp[0]);
+						p_s.xpos = Integer.parseInt(temp[0]);		//setting new data for the player
 						p_s.ypos = Integer.parseInt(temp[1]);
 						p_s.turned = Integer.parseInt(temp[2]);
 						p_s.speed = Integer.parseInt(temp[3]);
@@ -141,19 +153,22 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			Chat.chatOutput.append(PansyTadpole.getTime()+": Lost connection to the maps-server.\n");
 			PansyTadpole.connected(false);	//lost connection
 			tim.stop();
-			int x = p().xpos;
+			int x = p().xpos;		//saving playerdata
 			int y = p().ypos;
 			int t = p().turned;
 			int s = p().speed;
 			int p = p().points;
 			int h = p().status;
-			player.clear();
+			player.clear();			//clears all players
 			repaint();
-			connect(false, x+":"+y+":"+t+":"+s+":"+p+":"+h+":");
+			connect(false, x+":"+y+":"+t+":"+s+":"+p+":"+h+":");	//reconnect with previous data
 			return;
 		}
 	}
 
+	/**
+	 * Send position, status etc. to the server.
+	 */
 	private void sendData() {
 		try {
 			dos.writeUTF( p().xpos +":"+ p().ypos +":"+ p().turned +":"+ p().speed +":"+ p().points +":"+ p().status +":"+ PansyTadpole.nick +":"+ PansyTadpole.random);
@@ -162,6 +177,11 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 	
+	/**
+	 * Connect to the mapserver.
+	 * @param first 		Boolean 	true if this is the first connection or false if it's a reconnect-attempt
+	 * @param player_data	String		the players position, id etc.
+	 */
 	public void connect(boolean first, String player_data){
 		while ( true ) {
 			try {
@@ -185,6 +205,11 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 	
+	/**
+	 * Use a player in the Linked List of players, we need the players ID to do this.
+	 * @param d	Double	the id of the player that we want to use
+	 * @return Double	where in the linked list player we can find this player
+	 */
 	public static int getId(Double d){
 		for (int i = 0; i < player.size(); i++) {
 			if( player.get(i).id == d ){	//needs to be unique
@@ -194,19 +219,31 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		return 0;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.awt.event.KeyListener#keyPressed(java.awt.event.KeyEvent)
+	 */
 	public void keyPressed(KeyEvent e) {
 		if(e.getKeyCode()>=37 && e.getKeyCode()<=40){
 			arrowDown[40-e.getKeyCode()]=true;
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.awt.event.KeyListener#keyReleased(java.awt.event.KeyEvent)
+	 */
 	public void keyReleased(KeyEvent e) {
 		if(e.getKeyCode()>=37 && e.getKeyCode()<=40)
 			arrowDown[40-e.getKeyCode()]=false;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.awt.event.KeyListener#keyTyped(java.awt.event.KeyEvent)
+	 */
 	public void keyTyped(KeyEvent e) {}
 
+	/* (non-Javadoc)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
 	public void actionPerformed(ActionEvent e) {	//happens every 5ms
 		increase_points();
 		if (PansyTadpole.isMouseActive() && (arrowDown[0]||arrowDown[1]||arrowDown[2]||arrowDown[3])) {
@@ -222,8 +259,14 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 	
+	/**
+	 * NOT YET FULLY FUNCTIONAL!
+	 * Checking if this client is used by the player chasing everyone.
+	 * If this is the case we need to check if it collides with another player.
+	 * Then we tell this to the server which then handles the switching of player-statuses.
+	 */
 	private void collisionCheck() {
-		if( p().status != 2 ) return;	//only do this if the client is tha chaser
+		if( p().status != 2 ) return;	//only do this if the client is the chaser
 		int xdiff, ydiff;
 		for (int i = 0; i < player.size(); i++) {
 			if( player.get(i).id != 0.0 && player.get(i).status == 0 ){		//a connected player which isnt hidden or chasing
@@ -248,7 +291,11 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 			}
 		}
 	}
-//43 26
+	
+	/**
+	 * Calculate the players new position if they try to move.
+	 * @return Boolean if the player have moved anything at all or not
+	 */
 	private boolean calculateMove() {
 		boolean change = false;
 		if(arrowDown[0] && !arrowDown[2] && (p().ypos+p().speed) <= max_y + 100){	//height(800) - chat(200) + hide-area(100)
@@ -271,8 +318,12 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 		return change;
 	}
-	
-	//possible commands the server can send
+
+	/**
+	 * Checks if a command sent by the server is a special-command or just coordinates.
+	 * @param msg	String	the message sent by the server
+	 * @return	Boolean		if it was a special-command or not
+	 */
 	public boolean specialCommand( String msg ){
 		String[] temp;
 		temp = msg.substring(5).split(":");
@@ -309,6 +360,11 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		return false;
 	}
 	
+	/**
+	 * NOT YET FULLY FUNCTIONAL!
+	 * Increase the players points every second if the player isn't hiding nor is chasing the other players around.
+	 * FOR NOW IT ONLY UPDATES THE SCOREBOARD...
+	 */
 	public void increase_points(){
 		if ( PansyTadpole.connections == 2 ){
 			//if ( hidden() == 0 || hidden() == 2) p().points += 5;	//gives the player 100 points/second if not hiding
@@ -316,6 +372,11 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		}
 	}
 	
+	/**
+	 * Get and set the player that this client is handling.
+	 * Easier to read code if there are lots of "p()" instead of "player.get(getId(PansyTadpole.random))" everywhere.
+	 * @return Player	the player that this client handles
+	 */
 	public Player p(){
 		if( player.size() > 0 ){
 			return player.get(getId(PansyTadpole.random));
@@ -323,6 +384,9 @@ public class GameArea extends JPanel implements ActionListener, KeyListener, Run
 		return null;
 	}
 
+	/**
+	 * To update a players nickname we need to change it in the client, and then tell the server about the change.
+	 */
 	public void updateNick() {
 		if( player.size() > 0 ){
 			player.get(getId(PansyTadpole.random)).nick = PansyTadpole.nick;

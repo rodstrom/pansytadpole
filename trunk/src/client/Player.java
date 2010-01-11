@@ -5,6 +5,10 @@ import java.net.URL;
 
 import javax.swing.ImageIcon;
 
+/**
+ * @author rodstrom
+ * Here we have the players.
+ */
 public class Player {
 	URL url;
 	ImageIcon sprite;
@@ -17,10 +21,25 @@ public class Player {
 	String nick = "";
 	double id;
 	
+	/**
+	 * Create a new player with default values.
+	 * @param i
+	 */
 	public Player( double i ){
 		this.id = i;
 	}
 	
+	/**
+	 * Set every datafield manually.
+	 * @param x
+	 * @param y
+	 * @param s
+	 * @param t
+	 * @param p
+	 * @param h
+	 * @param n
+	 * @param i
+	 */
 	public Player( int x, int y, int s, int t, int p, int h, String n, double i ){
 		try {
 			url = new URL( "http://pansytadpole.rodstrom.se/tadpole.png" );
