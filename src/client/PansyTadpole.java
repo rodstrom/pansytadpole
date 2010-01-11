@@ -11,6 +11,13 @@ import java.util.Random;
 
 import javax.swing.JApplet;
 
+/**
+ * @author rodstrom
+ * The game!
+ * One player is chasing the others around, the chased players get points for every second they are on the field.
+ * If they hide they wont get any points, and the player cahsing them needs to be fast, or else she/he won't get any points.
+ * @param host String the servers address
+ */
 public class PansyTadpole extends JApplet implements MouseListener{
 	private static final long serialVersionUID = 7197415241156375302L;
 	private static boolean mouseActive = false;
@@ -22,27 +29,40 @@ public class PansyTadpole extends JApplet implements MouseListener{
 	static int connections = 0;
 	private static boolean first = true;
 	static GameArea ga = new GameArea();
-	
-	//start with parameter "host" defining the servers adress
+
+	/* (non-Javadoc)
+	 * @see java.applet.Applet#init()
+	 */
 	public void init() {	
-		host = getParameter("host");
-		nick = ""+(int)(random*1000000);
-		this.add(new Sidebar(), BorderLayout.EAST);
-		this.add(new Chat(), BorderLayout.SOUTH);
-		this.add(ga, BorderLayout.CENTER);
-		this.addMouseListener(this);
+		host = getParameter("host");		//defines the address to the mapserver
+		nick = ""+(int)(random*1000000);	//a random nickname is chosen, the player can change it later
+		this.add(new Sidebar(), BorderLayout.EAST);		//start the sidebar with scoreboard
+		this.add(new Chat(), BorderLayout.SOUTH);		//start the chat/commandline
+		this.add(ga, BorderLayout.CENTER);				//start the gamearea, where things happen
+		this.addMouseListener(this);					//checks so that the mouse is within the applet, so that it doesnt keep moving when you change window or anything
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.awt.Container#paint(java.awt.Graphics)
+	 */
 	public void paint(Graphics g) {
 		super.paint(g);
 	}
 	
+	/**
+	 * Get the current time, for the chat-output
+	 * @return String current time
+	 */
 	public static String getTime(){
 		DateFormat time = DateFormat.getTimeInstance(DateFormat.MEDIUM);
 		Date date = new GregorianCalendar().getTime();
 		return time.format(date);
 	}
 	
+	/**
+	 * Keep track of connections, if there are 2 connections you are connected to both servers.
+	 * @param b	Boolean	true if connected, false if disconnected
+	 */
 	public static void connected(boolean b){
 		if(b){
 			connections++;
@@ -61,7 +81,9 @@ public class PansyTadpole extends JApplet implements MouseListener{
 			}
 		}
 	}
-
+	
+	//SETTERS&GETTERS BELOW
+	
 	public static void setMouseActive(boolean mouseActive) {
 		PansyTadpole.mouseActive = mouseActive;
 	}
@@ -70,11 +92,17 @@ public class PansyTadpole extends JApplet implements MouseListener{
 		return mouseActive;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
+	 */
 	public void mouseEntered(MouseEvent e) {
 		setMouseActive(true);
 		repaint();
 	}
 
+	/* (non-Javadoc)
+	 * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
+	 */
 	public void mouseExited(MouseEvent e) {
 		setMouseActive(false);
 		repaint();

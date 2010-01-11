@@ -6,6 +6,10 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 
+/**
+ * @author rodstrom
+ * The chat and commandline of the game.
+ */
 public class Chat extends JPanel implements Runnable {
 	private static final long serialVersionUID = -6395460343649750082L;
 	private JTextField chatInput = new JTextField();
@@ -24,6 +28,9 @@ public class Chat extends JPanel implements Runnable {
 		}
 	};
 	
+	/**
+	 * Create a new Chat. Then connect to the chatserver.
+	 */
 	public Chat() {		
 		chatOutput.setEditable(false);
 		chatOutput.setBackground(Color.BLACK);
@@ -40,7 +47,11 @@ public class Chat extends JPanel implements Runnable {
 		connectServer(true);	//try to connect, "true" because its the first time
 	}
 
-	//handles everything that gets typed by the user
+	/**
+	 * Handles everything that gets typed by the user.
+	 * Then sends it to the server.
+	 * @param message
+	 */
 	private void processMessage( String message ) {
 		try {
 			if ( message.substring(0, 1).equals("/") ) {	//only special commands start with a /
@@ -61,6 +72,10 @@ public class Chat extends JPanel implements Runnable {
 		}
 	}
 	
+	/**
+	 * Connect to the server.
+	 * @param first Boolean	is this the first time we're connecting?
+	 */
 	public void connectServer(boolean first){
 		while (true) {
 			try {
@@ -80,7 +95,9 @@ public class Chat extends JPanel implements Runnable {
 		}
 	}
 	
-	//keep receiving messages from the server
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 		try {
 			while (true) {
@@ -98,7 +115,11 @@ public class Chat extends JPanel implements Runnable {
 		}
 	}
 	
-	//possible commands the server can send
+	/**
+	 * Check if the server sent a special-command.
+	 * @param msg String the command received from the server
+	 * @return
+	 */
 	public boolean specialCommand( String msg ){
 		if( msg.substring(0, 1).equals("/") ){
 			if( msg.length() >= 6){
